@@ -39,11 +39,10 @@ install_base(){
 
 set_port(){
     echo -e "${Tip} 请设置ssh端口号!（默认为 22）"
-    read -p "设置ssh端口号：" sshport 
-
+    read -p "设置ssh端口号：" sshport
     if [ -z "$sshport" ]; then
         sshport=22
-    elif [[ "$sshport" != "22" ]] && ([[ $sshport -lt 22 ]] || [[ $sshport -gt 65535 ]] || [[ $(netstat -tuln | grep -w "$sshport") ]]); then
+    elif [[ $sshport -lt 22 || $sshport -gt 65535 || $(netstat -tuln | grep -w "$sshport") && "$sshport" != "22" ]]; then
         echo -e "${Tip} 设置的端口无效或被占用，默认设置为 22 端口"
         sshport=22
     fi
