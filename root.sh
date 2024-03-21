@@ -43,11 +43,9 @@ set_port(){
 
     if [ -z "$sshport" ]; then
         sshport=22
-    elif [ "$sshport" != "22" ]; then
-        if ! [[ $sshport =~ ^[0-9]+$ ]] || [[ $sshport -lt 22 ]] || [[ $sshport -gt 65535 ]] || [[ $(lsof -i:"$sshport" | grep -i -c "listen") -ne 0 ]]; then
-            echo -e "${Tip} 设置的端口无效或被占用，默认设置为 22 端口"
-            sshport=22
-        fi
+    elif [[ "$sshport" != "22" ]] && (! [[ $sshport =~ ^[0-9]+$ ]] || [[ $sshport -lt 22 ]]  || [[ $sshport -gt 65535 ]]  || [[ $(lsof -i:"$sshport" | grep -i -c "listen") -ne 0 ]]); then
+        echo -e "${Tip} 设置的端口无效或被占用，默认设置为 22 端口"
+        sshport=22
     fi
 }
 
