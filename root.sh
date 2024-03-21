@@ -42,7 +42,7 @@ set_port(){
     read -p "设置ssh端口号：" sshport
     if [ -z "$sshport" ]; then
         sshport=22
-    elif [[ $sshport -lt 22 || $sshport -gt 65535 || [[ $(netstat -tuln | grep -w "$sshport") ]] && "$sshport" != "22" ]]; then
+    elif [[ $sshport -lt 22 || $sshport -gt 65535 || $(netstat -tuln | grep -w "$sshport") && "$sshport" != "22" ]]; then
         echo -e "${Tip} 设置的端口无效或被占用，默认设置为 22 端口"
         sshport=22
     fi
