@@ -13,11 +13,45 @@ Info="${Green}[信息]${Nc}"
 Error="${Red}[错误]${Nc}"
 Tip="${Yellow}[提示]${Nc}"
 
-if [[ $(whoami) == "root" ]]; then
-    echo -e "${Tip} 请设置ssh端口号!（默认为 22）"
-    read -p "设置ssh端口号：" sshport
-    sshport=${sshport:-22} # 如果用户没有输入，则使用默认值22
+install_base(){
+    OS=$(cat /etc/os-release | grep -o -E "Debian|Ubuntu|CentOS|Fedora" | head -n 1)    
+    if [[ "$OS" == "Debian" || "$OS" == "Ubuntu" ]]; then
+        commands=("lsof")
+        apps=("lsof")
+        install=()
+        for i in ${!commands[@]}; do
+            [ ! $(command -v ${commands[i]}) ] && install+=(${apps[i]})
+        done
+        [ "${#install[@]}" -gt 0 ] && apt update -y && apt install -y ${install[@]}
+    elif [[ "$OS" == "CentOS" || "$OS" == "Fedora" ]]; then
+        commands=("lsof")
+        apps=("lsof")
+        install=()
+        for i in ${!commands[@]}; do
+            [ ! $(command -v ${commands[i]}) ] && install+=(${apps[i]})
+        done
+        [ "${#install[@]}" -gt 0 ] && yum update -y && yum install -y ${install[@]}
+    else
+        echo -e "${Error} 很抱歉，你的系统不受支持！"
+        exit 1
+    fi
+}
 
+set_port(){
+    echo -e "${Tip} 请设置ssh端口号!（默认为 22）"
+    read -p "设置ssh端口号：" sshport 
+
+    if [ -z "$sshport" ]; then
+        sshport=22
+    elif [ "$sshport" != "22" ]; then
+        if ! [[ $sshport =~ ^[0-9]+$ ]] || [[ $sshport -lt 22 ]] || [[ $sshport -gt 65535 ]] || [[ $(lsof -i:"$sshport" | grep -i -c "listen") -ne 0 ]]; then
+            echo -e "${Tip} 设置的端口无效或被占用，默认设置为 22 端口"
+            sshport=22
+        fi
+    fi
+}
+
+set_passwd(){
     echo -e "${Tip} 请设置root密码!"
     read -p "设置root密码：" passwd
     if [ -z "$passwd" ]; then
@@ -26,6 +60,9 @@ if [[ $(whoami) == "root" ]]; then
     else
         password=$passwd
     fi
+}
+
+set_ssh(){
     echo root:$password | chpasswd root
     sed -i "s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config
     sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
@@ -57,6 +94,13 @@ ${Info} VPS root密码 : ${Red_globa} $password ${Nc}
             pkill -9 -t $pts
         fi
     done
+}
+
+if [[ $(whoami) == "root" ]]; then
+    install_base
+    set_port
+    set_passwd
+    set_ssh
 else
     echo -e "${Error}请执行 ${Green}sudo -i${Nc} 后以${Green}root${Nc}权限执行此脚本！"
     exit 1
