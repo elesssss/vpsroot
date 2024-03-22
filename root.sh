@@ -52,18 +52,16 @@ set_passwd(){
     echo -e "${Tip} 请设置root密码!"
     read -p "设置root密码：" passwd
     if [ -z "$passwd" ]; then
-        echo -e "${Error}未输入密码，无法执行操作！"
+        echo -e "${Error} 未输入密码，无法执行操作，请重新运行脚本并输入密码！"
         exit 1
-    else
-        password=$passwd
     fi
 }
 
 set_ssh(){
-    echo root:$password | chpasswd root
+    echo root:$passwd | chpasswd root
     sed -i "s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config
     sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
-    sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+    sed -i 's/^#\?passwdAuthentication.*/passwdAuthentication yes/g' /etc/ssh/sshd_config
     sed -i 's/^#\?RSAAuthentication.*/RSAAuthentication yes/g' /etc/ssh/sshd_config
     sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication yes/g' /etc/ssh/sshd_config
     rm -rf /etc/ssh/sshd_config.d/* && rm -rf /etc/ssh/ssh_config.d/*
@@ -79,7 +77,7 @@ ${Info} ssh端口 :      ${Red_globa} $sshport ${Nc}
 ================================
 ${Info} VPS用户名 :    ${Red_globa} root ${Nc}
 ================================
-${Info} VPS root密码 : ${Red_globa} $password ${Nc}
+${Info} VPS root密码 : ${Red_globa} $passwd ${Nc}
 ================================"
     echo
 
