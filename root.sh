@@ -30,7 +30,7 @@ install_base(){
         for i in ${!commands[@]}; do
             [ ! $(command -v ${commands[i]}) ] && install+=(${apps[i]})
         done
-        [ "${#install[@]}" -gt 0 ] && yum update -y && yum install -y ${install[@]}
+        [ "${#install[@]}" -gt 0 ] && dnf update -y && dnf install -y ${install[@]}
     else
         echo -e "${Error} 很抱歉，你的系统不受支持！"
         exit 1
