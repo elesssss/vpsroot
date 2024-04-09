@@ -67,6 +67,7 @@ set_ssh(){
     rm -rf /etc/ssh/sshd_config.d/* && rm -rf /etc/ssh/ssh_config.d/*
 
     # 重启SSH服务
+    systemctl restart ssh* >/dev/null 2>&1
     /etc/init.d/ssh* restart >/dev/null 2>&1
 
     # 输出结果
