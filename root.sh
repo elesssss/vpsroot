@@ -92,7 +92,7 @@ ${Info} VPS root密码 : ${Red_globa} $passwd ${Nc}
     done
 }
 
-if [[ $(whoami) == "root" ]]; then
+if [ "$(id -u)" == "0" ]; then
     install_base
     set_port
     set_passwd
