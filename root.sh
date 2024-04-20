@@ -117,7 +117,7 @@ install_base(){
 }
 
 set_port(){
-    echo -e "${Tip} 请设置ssh端口号!（默认为 22）"
+    echo -e "${Tip} 请设置ssh端口号!（默认为 ${Red}22${Nc}）"
     read -p "设置ssh端口号：" sshport
     if [ -z "$sshport" ]; then
         sshport=22
