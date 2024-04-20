@@ -13,9 +13,88 @@ Info="${Green}[信息]${Nc}"
 Error="${Red}[错误]${Nc}"
 Tip="${Yellow}[提示]${Nc}"
 
+check_root(){
+    if [ "$(id -u)" != "0" ]; then
+        echo -e "${Error}请执行 ${Green}sudo -i${Nc} 后以${Green}root${Nc}权限执行此脚本！"
+        exit 1
+    fi
+}
+
+check_release(){
+    if [[ -e /etc/os-release ]]; then
+        . /etc/os-release
+        release=$ID
+    elif [[ -e /usr/lib/os-release ]]; then
+        . /usr/lib/os-release
+        release=$ID
+    else
+        echo ""
+    fi
+
+    os_version=$(grep -i version_id /etc/os-release | cut -d \" -f2 | cut -d . -f1)
+
+    if [[ "${release}" == "arch" ]]; then
+        echo ""
+    elif [[ "${release}" == "parch" ]]; then
+        echo ""
+    elif [[ "${release}" == "manjaro" ]]; then
+        echo ""
+    elif [[ "${release}" == "armbian" ]]; then
+        echo ""
+    elif [[ "${release}" == "centos" ]]; then
+        if [[ ${os_version} -lt 7 ]]; then
+            echo -e "${Error} 请使用 CentOS 7 或更高版本！" && exit 1
+        fi
+    elif [[ "${release}" == "ubuntu" ]]; then
+        if [[ ${os_version} -lt 20 ]]; then
+            echo -e "${Error} 请使用 Ubuntu 20.04 或更高版本！" && exit 1
+        fi
+    elif [[ "${release}" == "fedora" ]]; then
+        if [[ ${os_version} -lt 36 ]]; then
+            echo -e "${Error} 请使用 Fedora 36 或更高版本！" && exit 1
+        fi
+    elif [[ "${release}" == "debian" ]]; then
+        if [[ ${os_version} -lt 10 ]]; then
+            echo -e "${Error} 请使用 Debian 10 或更高版本！" && exit 1
+        fi
+    elif [[ "${release}" == "almalinux" ]]; then
+        if [[ ${os_version} -lt 9 ]]; then
+            echo -e "${Error} 请使用 AlmaLinux 9 或更高版本！" && exit 1
+        fi
+    elif [[ "${release}" == "rocky" ]]; then
+        if [[ ${os_version} -lt 9 ]]; then
+            echo -e "${Error} 请使用 Rocky Linux 9 或更高版本！" && exit 1
+        fi
+    elif [[ "${release}" == "oracle" ]]; then
+        if [[ ${os_version} -lt 8 ]]; then
+            echo -e "${Error} 请使用 Oracle Linux 8 或更高版本！" && exit 1
+        fi
+    elif [[ "${release}" == "alpine" ]]; then
+        if [[ ${os_version} -lt 3.8 ]]; then
+            echo -e "${Error} 请使用 Alpine Linux 3.8 或更高版本！" && exit 1
+        fi
+    else
+        echo -e "${Error} 抱歉，此脚本不支持您的操作系统。"
+        echo "${Info} 请确保您使用的是以下支持的操作系统之一："
+        echo "- Ubuntu 20.04+"
+        echo "- Debian 10+"
+        echo "- CentOS 7+"
+        echo "- Fedora 36+"
+        echo "- Arch Linux"
+        echo "- Parch Linux"
+        echo "- Manjaro"
+        echo "- Armbian"
+        echo "- AlmaLinux 9+"
+        echo "- Rocky Linux 9+"
+        echo "- Oracle Linux 8+"
+        echo "- Alpine Linux 3.8"
+        exit 1
+    fi
+}
+
 install_base(){
-    OS=$(cat /etc/os-release | grep -o -E "Debian|Ubuntu|CentOS|Fedora" | head -n 1)    
-    if [[ "$OS" == "Debian" || "$OS" == "Ubuntu" ]]; then
+    check_release
+    if [[ "$release" == "debian" || "$release" == "ubuntu" ]]; then
         commands=("netstat")
         apps=("net-tools")
         install=()
@@ -23,7 +102,7 @@ install_base(){
             [ ! $(command -v ${commands[i]}) ] && install+=(${apps[i]})
         done
         [ "${#install[@]}" -gt 0 ] && apt update -y && apt install -y ${install[@]}
-    elif [[ "$OS" == "CentOS" || "$OS" == "Fedora" ]]; then
+    elif [[ "$release" == "centos" || "$release" == "fedora" ]]; then
         commands=("netstat")
         apps=("net-tools")
         install=()
@@ -49,7 +128,7 @@ set_port(){
 }
 
 set_passwd(){
-    echo -e "${Tip} 请设置root密码!"
+    echo -e "${Tip} 请设置root密码！"
     read -p "设置root密码：" passwd
     if [ -z "$passwd" ]; then
         echo -e "${Error} 未输入密码，无法执行操作，请重新运行脚本并输入密码！"
@@ -57,7 +136,23 @@ set_passwd(){
     fi
 }
 
-set_ssh(){
+# 重启SSH服务
+restart_ssh(){
+    check_release
+    if [[ "$release" == "debian" || "$release" == "ubuntu" || "$release" == "centos" || "$release" == "fedora" || "$release" == "almalinux" || "$release" == "rocky" || "$release" == "oracle" || "$release" == "manjaro" || "$release" == "parch" || "$release" == "arch" ]]; then
+        systemctl restart ssh* >/dev/null 2>&1
+    elif [[ "$release" == "armbian" ]]; then
+        service ssh* restart >/dev/null 2>&1
+    elif [[ "$release" == "alpine" ]]; then
+        rc-service ssh* restart >/dev/null 2>&1
+    fi
+}
+
+main(){
+    check_root
+    install_base
+    set_port
+    set_passwd
     echo root:$passwd | chpasswd root
     sed -i "s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config
     sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
@@ -66,9 +161,7 @@ set_ssh(){
     sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication yes/g' /etc/ssh/sshd_config
     rm -rf /etc/ssh/sshd_config.d/* && rm -rf /etc/ssh/ssh_config.d/*
 
-    # 重启SSH服务
-    systemctl restart ssh* >/dev/null 2>&1
-    /etc/init.d/ssh* restart >/dev/null 2>&1
+    restart_ssh
 
     # 输出结果
     echo
@@ -92,12 +185,4 @@ ${Info} VPS root密码 : ${Red_globa} $passwd ${Nc}
     done
 }
 
-if [ "$(id -u)" == "0" ]; then
-    install_base
-    set_port
-    set_passwd
-    set_ssh
-else
-    echo -e "${Error}请执行 ${Green}sudo -i${Nc} 后以${Green}root${Nc}权限执行此脚本！"
-    exit 1
-fi
+main
