@@ -74,34 +74,35 @@ check_pmc(){
     if [[ "$release" == "debian" || "$release" == "ubuntu" || "$release" == "kali" ]]; then
         updates="apt update -y"
         installs="apt install -y"
-        app=( ["netstat"]="net-tools")
+        apps=("net-tools")
     elif [[ "$release" == "almalinux" || "$release" == "fedora" || "$release" == "rocky" ]]; then
         updates="dnf update -y"
         installs="dnf install -y"
-        app=( ["netstat"]="net-tools")
+        apps=("net-tools")
     elif [[ "$release" == "centos" || "$release" == "oracle" ]]; then
         updates="yum update -y"
         installs="yum install -y"
-        app=( ["netstat"]="net-tools")
+        apps=("net-tools")
     elif [[ "$release" == "arch" ]]; then
         updates="pacman -Syu --noconfirm"
         installs="pacman -S --noconfirm"
-        app=( ["netstat"]="inetutils")
+        apps=("inetutils")
     elif [[ "$release" == "alpine" ]]; then
         updates="apk update"
         installs="apk add"
-        app=( ["netstat"]="net-tools")
+        apps=("net-tools")
     fi
 }
 
 
 install_base(){
     check_pmc
-    apps=("netstat")
+    echo -e "${Info}你的系统是${Red} $release $os_version ${Nc}"
+    echo
     commands=("netstat")
     install=()
     for i in ${!commands[@]}; do
-        [ ! $(command -v ${apps[i]}) ] && install+=(${app[${apps[i]}]})
+        [ ! $(command -v ${commands[i]}) ] && install+=(${apps[i]})
     done
     [ "${#install[@]}" -gt 0 ] && $updates && $installs ${install[@]}
 }
