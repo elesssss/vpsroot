@@ -99,8 +99,6 @@ check_pmc(){
 
 install_base(){
     check_pmc
-    echo -e "${Info} 你的系统是${Red} $release $os_version ${Nc}"
-    echo
     for i in "${apps[@]}"
     do
         if ! $check_install $i &> /dev/null
