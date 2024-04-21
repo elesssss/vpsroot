@@ -30,9 +30,7 @@ check_release(){
     fi
     os_version=$(echo $VERSION_ID | cut -d. -f1,2)
 
-    if [[ "${release}" == "arch" ]]; then
-        echo
-    elif [[ "${release}" == "kali" ]]; then
+    if [[ "${release}" == "kali" ]]; then
         echo
     elif [[ "${release}" == "centos" ]]; then
         echo
@@ -57,7 +55,6 @@ check_release(){
         echo -e "-${Red} Debian ${Nc}"
         echo -e "-${Red} CentOS ${Nc}"
         echo -e "-${Red} Fedora ${Nc}"
-        echo -e "-${Red} Arch Linux ${Nc}"
         echo -e "-${Red} Kali ${Nc}"
         echo -e "-${Red} AlmaLinux ${Nc}"
         echo -e "-${Red} Rocky Linux ${Nc}"
@@ -84,10 +81,6 @@ check_pmc(){
         installs="yum install -y"
         check_install="rpm -q"
         apps=("net-tools")
-    elif [[ "$release" == "arch" ]]; then
-        updates="pacman -Syu --noconfirm"
-        installs="pacman -S --noconfirm"
-        apps=("inetutils")
     elif [[ "$release" == "alpine" ]]; then
         updates="apk update"
         installs="apk add"
