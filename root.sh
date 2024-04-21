@@ -72,14 +72,17 @@ check_pmc(){
     if [[ "$release" == "debian" || "$release" == "ubuntu" || "$release" == "kali" ]]; then
         updates="apt update -y"
         installs="apt install -y"
+        check_install="dpkg -s"
         apps=("net-tools")
     elif [[ "$release" == "almalinux" || "$release" == "fedora" || "$release" == "rocky" ]]; then
         updates="dnf update -y"
         installs="dnf install -y"
+        check_install="dnf list installed"
         apps=("net-tools")
     elif [[ "$release" == "centos" || "$release" == "oracle" ]]; then
         updates="yum update -y"
         installs="yum install -y"
+        check_install="rpm -q"
         apps=("net-tools")
     elif [[ "$release" == "arch" ]]; then
         updates="pacman -Syu --noconfirm"
@@ -88,6 +91,7 @@ check_pmc(){
     elif [[ "$release" == "alpine" ]]; then
         updates="apk update"
         installs="apk add"
+        check_install="apk info -e"
         apps=("net-tools")
     fi
 }
@@ -95,12 +99,15 @@ check_pmc(){
 
 install_base(){
     check_pmc
-    commands=("netstat")
-    install=()
-    for i in ${!commands[@]}; do
-        [ ! $(command -v ${commands[i]}) ] && install+=(${apps[i]})
+    for i in "${apps[@]}"
+    do
+        if ! $check_install $i &> /dev/null
+        then
+            echo -e "${Tip} $i 未安装。正在安装..."
+            $updates
+            $installs $i
+        fi
     done
-    [ "${#install[@]}" -gt 0 ] && $updates && $installs ${install[@]}
 }
 
 set_port(){
