@@ -24,13 +24,11 @@ check_release(){
     if [[ -e /etc/os-release ]]; then
         . /etc/os-release
         release=$ID
-        os_version=$VERSION_ID
     elif [[ -e /usr/lib/os-release ]]; then
         . /usr/lib/os-release
         release=$ID
-        os_version=$VERSION_ID
     fi
-
+    os_version=$(echo $VERSION_ID | cut -d. -f1,2)
 
     if [[ "${release}" == "arch" ]]; then
         echo
