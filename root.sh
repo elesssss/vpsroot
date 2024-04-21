@@ -126,7 +126,7 @@ set_passwd(){
 # 重启SSH服务
 restart_ssh(){
     check_release
-    if [[ "$release" == "debian" || "$release" == "ubuntu" || "$release" == "centos" || "$release" == "fedora" || "$release" == "almalinux" || "$release" == "rocky" || "$release" == "oracle" || "$release" == "kali" || "$release" == "arch" ]]; then
+    if [[ "$release" == "debian" || "$release" == "ubuntu" || "$release" == "centos" || "$release" == "fedora" || "$release" == "almalinux" || "$release" == "rocky" || "$release" == "oracle" || "$release" == "kali" ]]; then
         systemctl restart ssh* >/dev/null 2>&1
     elif [[ "$release" == "alpine" ]]; then
         rc-service ssh* restart >/dev/null 2>&1
