@@ -88,8 +88,8 @@ check_pmc(){
         installs="pacman -S --noconfirm"
         app=( ["netstat"]="inetutils")
     elif [[ "$release" == "alpine" ]]; then
-        updates="apk update -q"
-        installs="apk add -q"
+        updates="apk update"
+        installs="apk add"
         app=( ["netstat"]="net-tools")
     fi
 }
