@@ -97,10 +97,11 @@ check_pmc(){
 
 install_base(){
     check_pmc
+    commands=("netstat")
     apps=("netstat")
     install=()
     for i in ${!commands[@]}; do
-        [ ! $(command -v ${apps[i]}) ] && install+=(${app[${apps[i]}]})
+        [ ! $(command -v ${commands[i]}) ] && install+=(${app[${apps[i]}]})
     done
     [ "${#install[@]}" -gt 0 ] && $updates && $installs ${install[@]}
 }
