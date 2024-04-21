@@ -97,8 +97,6 @@ check_pmc(){
 
 install_base(){
     check_pmc
-    echo -e "${Info}你的系统是${Red} $release $os_version ${Nc}"
-    echo
     commands=("netstat")
     install=()
     for i in ${!commands[@]}; do
