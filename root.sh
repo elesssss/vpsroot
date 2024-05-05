@@ -96,8 +96,8 @@ install_base(){
     done
 
     if [ "${#DEPS[@]}" -ge 1 ]; then
-        $updates
-        $installs ${DEPS[@]}
+        $updates >/dev/null 2>&1
+        $installs ${DEPS[@]} >/dev/null 2>&1
     fi
 }
 
