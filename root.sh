@@ -112,10 +112,6 @@ install_base(){
         $updates &> /dev/null
         $installs "${DEPS[@]}" &> /dev/null
     fi
-
-    if [[ "$release" == "almalinux" || "$release" == "rocky" || "$release" == "oracle" ]]; then
-        ln -sf /usr/bin/python3.11 /usr/bin/python3
-    fi
 }
 
 set_port(){
