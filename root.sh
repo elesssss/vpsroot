@@ -13,9 +13,10 @@ Info="${Green}[信息]${Nc}"
 Error="${Red}[错误]${Nc}"
 Tip="${Yellow}[提示]${Nc}"
 
+# 检查是否为root用户
 check_root(){
     if [ "$(id -u)" != "0" ]; then
-        echo -e "${Error}请执行 ${Green}sudo -i${Nc} 后以${Green}root${Nc}权限执行此脚本！"
+        echo -e "${Error} 当前非ROOT账号(或没有ROOT权限)，无法继续操作，请更换ROOT账号或使用 ${Green_globa}sudo -i${Nc} 命令获取临时ROOT权限（执行后可能会提示输入当前账号的密码）。"
         exit 1
     fi
 }
@@ -44,14 +45,14 @@ check_release(){
         echo
     elif [[ "${release}" == "rocky" ]]; then
         echo
-    elif [[ "${release}" == "oracle" ]]; then
-        echo
+    elif [[ "${release}" == "ol" ]]; then
+        release=oracle
     elif [[ "${release}" == "alpine" ]]; then
         echo
     else
         echo -e "${Error} 抱歉，此脚本不支持您的操作系统。"
         echo -e "${Info} 请确保您使用的是以下支持的操作系统之一："
-        echo -e "-${Red} Ubuntu${Nc} "
+        echo -e "-${Red} Ubuntu ${Nc} "
         echo -e "-${Red} Debian ${Nc}"
         echo -e "-${Red} CentOS ${Nc}"
         echo -e "-${Red} Fedora ${Nc}"
@@ -69,18 +70,27 @@ check_pmc(){
     if [[ "$release" == "debian" || "$release" == "ubuntu" || "$release" == "kali" ]]; then
         updates="apt update -y"
         installs="apt install -y"
-        apps=("net-tools")
-    elif [[ "$release" == "almalinux" || "$release" == "fedora" || "$release" == "rocky" ]]; then
-        updates="dnf update -y"
-        installs="dnf install -y"
-        apps=("net-tools")
-    elif [[ "$release" == "centos" || "$release" == "oracle" ]]; then
-        updates="yum update -y"
-        installs="yum install -y"
+        check_install="dpkg -s"
         apps=("net-tools")
     elif [[ "$release" == "alpine" ]]; then
         updates="apk update -f"
         installs="apk add -f"
+        check_install="apk info -e"
+        apps=("net-tools")
+    elif [[ "$release" == "almalinux" || "$release" == "rocky" || "$release" == "oracle" ]]; then
+        updates="dnf update -y"
+        installs="dnf install -y"
+        check_install="dnf list installed"
+        apps=("net-tools")
+    elif [[ "$release" == "centos" ]]; then
+        updates="yum update -y"
+        installs="yum install -y"
+        check_install="yum list installed"
+        apps=("net-tools")
+    elif [[ "$release" == "fedora" ]]; then
+        updates="dnf update -y"
+        installs="dnf install -y"
+        check_install="dnf list installed"
         apps=("net-tools")
     fi
 }
@@ -88,16 +98,23 @@ check_pmc(){
 install_base(){
     check_pmc
     cmds=("netstat")
-    for g in "${!cmds[@]}"; do
-        if [ ! $(type -p ${cmds[g]}) ]; then
+    echo -e "${Info} 你的系统是${Red} $release $os_version ${Nc}"
+    echo
+
+    for g in "${!apps[@]}"; do
+        if ! $check_install "${apps[$g]}" &> /dev/null; then
             CMDS+=(${cmds[g]})
-            DEPS+=(${apps[g]})
+            DEPS+=("${apps[$g]}")
         fi
     done
+    
+    if [ ${#DEPS[@]} -gt 0 ]; then
+        $updates &> /dev/null
+        $installs "${DEPS[@]}" &> /dev/null
+    fi
 
-    if [ "${#DEPS[@]}" -ge 1 ]; then
-        $updates >/dev/null 2>&1
-        $installs ${DEPS[@]} >/dev/null 2>&1
+    if [[ "$release" == "almalinux" || "$release" == "rocky" || "$release" == "oracle" ]]; then
+        ln -sf /usr/bin/python3.11 /usr/bin/python3
     fi
 }
 
