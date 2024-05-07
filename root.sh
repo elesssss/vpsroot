@@ -98,8 +98,6 @@ check_pmc(){
 install_base(){
     check_pmc
     cmds=("netstat")
-    echo -e "${Info} 你的系统是${Red} $release $os_version ${Nc}"
-    echo
 
     for g in "${!apps[@]}"; do
         if ! $check_install "${apps[$g]}" &> /dev/null; then
