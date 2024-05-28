@@ -113,13 +113,14 @@ install_base(){
 }
 
 set_port(){
-    echo -e "${Tip} 请设置ssh端口号!（默认为 ${Red}22${Nc}）"
+    old_sshport=$(grep -E '^#?Port' /etc/ssh/sshd_config | awk '{print $2}' | head -1)
+    echo -e "${Tip} 请设置ssh端口号!（默认为原本的${Green} ${old_sshport}${Nc} 端口）"
     read -p "设置ssh端口号：" sshport
     if [ -z "$sshport" ]; then
-        sshport=22
-    elif [[ $sshport -lt 22 || $sshport -gt 65535 || $(netstat -tuln | grep -w "$sshport") && "$sshport" != "22" ]]; then
-        echo -e "${Error} 设置的端口无效或被占用，默认设置为 ${Green}22${Nc} 端口"
-        sshport=22
+        sshport=$old_sshport
+    elif [[ $sshport -lt 22 || $sshport -gt 65535 || $(netstat -tuln | grep -w "$sshport") && "$sshport" != "$old_sshport" ]]; then
+        echo -e "${Error} 设置的端口无效或占用，默认设置为原本的${Green} ${old_sshport}${Nc} 端口"
+        sshport=$old_sshport
     fi
 }
 
@@ -148,7 +149,7 @@ main(){
     set_port
     set_passwd
     echo root:$passwd | chpasswd root
-    sed -i "s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config
+    sed -i "0,/^#\?Port/s/^#\?Port.*/Port $sshport/" /etc/ssh/sshd_config
     sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
     sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config
     sed -i 's/^#\?RSAAuthentication.*/RSAAuthentication yes/g' /etc/ssh/sshd_config
