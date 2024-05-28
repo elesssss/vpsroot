@@ -149,7 +149,7 @@ main(){
     set_port
     set_passwd
     echo root:$passwd | chpasswd root
-    sed -i "0,/^#\?Port/s/^#\?Port.*/Port $sshport/" /etc/ssh/sshd_config
+    sed -i "0,/^#\?Port/s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config
     sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
     sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config
     sed -i 's/^#\?RSAAuthentication.*/RSAAuthentication yes/g' /etc/ssh/sshd_config
