@@ -31,7 +31,9 @@ check_release(){
     fi
     os_version=$(echo $VERSION_ID | cut -d. -f1,2)
 
-    if [[ ! "${release}" =~ ^(kali|centos|ubuntu|fedora|debian|almalinux|rocky|alpine)$ ]]; then
+    if [[ "${release}" == "ol" ]]; then
+        release=oracle
+    elif [[ ! "${release}" =~ ^(kali|centos|ubuntu|fedora|debian|almalinux|rocky|alpine)$ ]]; then
         echo -e "${Error} 抱歉，此脚本不支持您的操作系统。"
         echo -e "${Info} 请确保您使用的是以下支持的操作系统之一："
         echo -e "-${Red} Ubuntu ${Nc}"
@@ -44,8 +46,6 @@ check_release(){
         echo -e "-${Red} Oracle Linux ${Nc}"
         echo -e "-${Red} Alpine Linux ${Nc}"
         exit 1
-    elif [[ "${release}" == "ol" ]]; then
-        release=oracle
     fi
 }
 
