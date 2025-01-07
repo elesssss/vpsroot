@@ -114,6 +114,8 @@ set_passwd(){
     if [ -z "$passwd" ]; then
         echo -e "${Error} 未输入密码，无法执行操作，请重新运行脚本并输入密码！"
         exit 1
+    else
+        (echo "$passwd"; sleep 1; echo "$passwd") | passwd &>/dev/null
     fi
 }
 
@@ -132,7 +134,6 @@ main(){
     install_base
     set_port
     set_passwd
-    echo root:$passwd | chpasswd root
     sed -i "0,/^#\?Port/s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config
     sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
     sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g' /etc/ssh/sshd_config
