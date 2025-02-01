@@ -115,7 +115,7 @@ set_passwd(){
         echo -e "${Error} 未输入密码，无法执行操作，请重新运行脚本并输入密码！"
         exit 1
     else
-        (echo "$passwd"; sleep 1; echo "$passwd") | passwd &>/dev/null
+        (echo "$passwd"; sleep 1; echo "$passwd") | passwd &> /dev/null
     fi
 }
 
@@ -123,9 +123,9 @@ set_passwd(){
 restart_ssh(){
     check_release
     if [[ "$release" == "alpine" ]]; then
-        rc-service ssh* restart >/dev/null 2>&1
+        rc-service ssh* restart &> /dev/null
     else
-        systemctl restart ssh* >/dev/null 2>&1
+        systemctl restart ssh* &> /dev/null
     fi
 }
 
