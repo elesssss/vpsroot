@@ -29,11 +29,11 @@ check_release(){
         . /usr/lib/os-release
         release=$ID
     fi
-    os_version=$(echo $VERSION_ID | cut -d. -f1,2)
+    os_version="${VERSION_ID%%.*}"
 
     if [[ "${release}" == "ol" ]]; then
         release=oracle
-    elif [[ ! "${release}" =~ ^(kali|centos|ubuntu|fedora|debian|almalinux|rocky|alpine)$ ]]; then
+    elif [[ ! "${release}" =~ ^(kali|centos|ubuntu|fedora|debian|almalinux|rocky|alpine|arch|parch|manjaro|openEuler|armbian|amzn|opensuse-tumbleweed)$ ]]; then
         echo -e "${Error} 抱歉，此脚本不支持您的操作系统。"
         echo -e "${Info} 请确保您使用的是以下支持的操作系统之一："
         echo -e "-${Red} Ubuntu ${Nc}"
@@ -45,13 +45,20 @@ check_release(){
         echo -e "-${Red} Rocky Linux ${Nc}"
         echo -e "-${Red} Oracle Linux ${Nc}"
         echo -e "-${Red} Alpine Linux ${Nc}"
+        echo -e "-${Red} Arch Linux ${Nc}"
+        echo -e "-${Red} Parch Linux ${Nc}"
+        echo -e "-${Red} Manjaro ${Nc}"
+        echo -e "-${Red} armbian ${Nc}"
+        echo -e "-${Red} Amazon Linux ${Nc}"
+        echo -e "-${Red} openEuler ${Nc}"
+        echo -e "-${Red} opensuse-tumbleweed ${Nc}"
         exit 1
     fi
 }
 
 check_pmc(){
     check_release
-    if [[ "$release" == "debian" || "$release" == "ubuntu" || "$release" == "kali" ]]; then
+    if [[ "$release" == "debian" || "$release" == "ubuntu" || "$release" == "kali" || "$release" == "armbian" ]]; then
         updates="apt update -y"
         installs="apt install -y"
         check_install="dpkg -s"
@@ -61,20 +68,25 @@ check_pmc(){
         installs="apk add -f"
         check_install="apk info -e"
         apps=("net-tools")
-    elif [[ "$release" == "almalinux" || "$release" == "rocky" || "$release" == "oracle" ]]; then
-        updates="dnf update -y"
-        installs="dnf install -y"
-        check_install="dnf list installed"
-        apps=("net-tools")
-    elif [[ "$release" == "centos" ]]; then
+    elif [[ "$release" == "almalinux" || "$release" == "rocky" || "$release" == "oracle" || "$release" == "centos" ]]; then
         updates="yum update -y"
         installs="yum install -y"
         check_install="yum list installed"
         apps=("net-tools")
-    elif [[ "$release" == "fedora" ]]; then
+    elif [[ "$release" == "fedora" || "$release" == "amzn" ]]; then
         updates="dnf update -y"
         installs="dnf install -y"
         check_install="dnf list installed"
+        apps=("net-tools")
+    elif [[ "$release" == "arch" || "$release" == "manjaro" || "$release" == "parch" ]]; then
+        updates="pacman -Syu"
+        installs="pacman -Syu --noconfirm"
+        check_install="pacman -Q"
+        apps=("net-tools")
+    elif [[ "$release" == "opensuse-tumbleweed" ]]; then
+        updates="zypper refresh"
+        installs="zypper -q install -y"
+        check_install="zypper search --installed-only"
         apps=("net-tools")
     fi
 }
