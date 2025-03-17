@@ -121,11 +121,16 @@ set_port(){
 }
 
 set_passwd(){
-    echo -e "${Tip} 请设置root密码！"
-    read -p "设置root密码：" passwd
+    echo -e "${Tip} 请设置 root 密码！"
+    read -p "设置 root 密码：" passwd
+
     if [ -z "$passwd" ]; then
         echo -e "${Error} 未输入密码，无法执行操作，请重新运行脚本并输入密码！"
         exit 1
+    fi
+
+    if type -p chpasswd &> /dev/null; then
+        echo root:$passwd | chpasswd
     else
         (echo "$passwd"; sleep 1; echo "$passwd") | passwd &> /dev/null
     fi
