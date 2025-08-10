@@ -21,86 +21,6 @@ check_root(){
     fi
 }
 
-check_release(){
-    if [[ -e /etc/os-release ]]; then
-        . /etc/os-release
-        release=$ID
-    elif [[ -e /usr/lib/os-release ]]; then
-        . /usr/lib/os-release
-        release=$ID
-    fi
-    os_version="${VERSION_ID%%.*}"
-
-    if [[ "${release}" == "ol" ]]; then
-        release=oracle
-    elif [[ ! "${release}" =~ ^(kali|centos|ubuntu|fedora|debian|almalinux|rocky|alpine|arch|parch|manjaro|openEuler|armbian|amzn|opensuse-tumbleweed)$ ]]; then
-        echo -e "${Error} 抱歉，此脚本不支持您的操作系统。"
-        echo -e "${Info} 请确保您使用的是以下支持的操作系统之一："
-        echo -e "-${Red} Ubuntu ${Nc}"
-        echo -e "-${Red} Debian ${Nc}"
-        echo -e "-${Red} CentOS ${Nc}"
-        echo -e "-${Red} Fedora ${Nc}"
-        echo -e "-${Red} Kali ${Nc}"
-        echo -e "-${Red} AlmaLinux ${Nc}"
-        echo -e "-${Red} Rocky Linux ${Nc}"
-        echo -e "-${Red} Oracle Linux ${Nc}"
-        echo -e "-${Red} Alpine Linux ${Nc}"
-        echo -e "-${Red} Arch Linux ${Nc}"
-        echo -e "-${Red} Parch Linux ${Nc}"
-        echo -e "-${Red} Manjaro ${Nc}"
-        echo -e "-${Red} armbian ${Nc}"
-        echo -e "-${Red} Amazon Linux ${Nc}"
-        echo -e "-${Red} openEuler ${Nc}"
-        echo -e "-${Red} opensuse-tumbleweed ${Nc}"
-        exit 1
-    fi
-}
-
-check_pmc(){
-    check_release
-    if [[ "$release" == "debian" || "$release" == "ubuntu" || "$release" == "kali" || "$release" == "armbian" ]]; then
-        updates="apt update -y"
-        installs="apt install -y"
-        apps=("net-tools")
-    elif [[ "$release" == "alpine" ]]; then
-        updates="apk update -f"
-        installs="apk add -f"
-        apps=("net-tools")
-    elif [[ "$release" == "almalinux" || "$release" == "rocky" || "$release" == "oracle" || "$release" == "centos" ]]; then
-        updates="yum update -y"
-        installs="yum install -y"
-        apps=("net-tools")
-    elif [[ "$release" == "fedora" || "$release" == "amzn" ]]; then
-        updates="dnf update -y"
-        installs="dnf install -y"
-        apps=("net-tools")
-    elif [[ "$release" == "arch" || "$release" == "manjaro" || "$release" == "parch" ]]; then
-        updates="pacman -Syu"
-        installs="pacman -Syu --noconfirm"
-        apps=("net-tools")
-    elif [[ "$release" == "opensuse-tumbleweed" ]]; then
-        updates="zypper refresh"
-        installs="zypper -q install -y"
-        apps=("net-tools")
-    fi
-}
-
-install_base(){
-    check_pmc
-    cmds=("netstat")
-
-    for i in "${!cmds[@]}"; do
-        if ! which "${cmds[i]}" &>/dev/null; then
-            DEPS+=("${apps[i]}")
-        fi
-    done
-    
-    if [ ${#DEPS[@]} -gt 0 ]; then
-        $updates &> /dev/null
-        $installs "${DEPS[@]}" &> /dev/null
-    fi
-}
-
 set_port(){
     old_sshport=$(grep -E '^#?Port' /etc/ssh/sshd_config | awk '{print $2}' | head -1)
     echo -e "${Tip} 请设置ssh端口号!（默认为原本的${Green} ${old_sshport}${Nc} 端口）"
@@ -141,7 +61,6 @@ restart_ssh(){
 
 main(){
     check_root
-    install_base
     set_port
     set_passwd
     sed -i "0,/^#\?Port/s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config
