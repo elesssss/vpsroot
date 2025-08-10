@@ -13,6 +13,34 @@ Info="${Green}[信息]${Nc}"
 Error="${Red}[错误]${Nc}"
 Tip="${Yellow}[提示]${Nc}"
 
+check_release(){
+    if [[ -e /etc/os-release ]]; then
+        . /etc/os-release
+        release=$ID
+    elif [[ -e /usr/lib/os-release ]]; then
+        . /usr/lib/os-release
+        release=$ID
+    fi
+    os_version=$(echo $VERSION_ID | cut -d. -f1,2)
+
+    if [[ "${release}" == "ol" ]]; then
+        release=oracle
+    elif [[ ! "${release}" =~ ^(kali|centos|ubuntu|fedora|debian|almalinux|rocky|alpine)$ ]]; then
+        echo -e "${Error} 抱歉，此脚本不支持您的操作系统。"
+        echo -e "${Info} 请确保您使用的是以下支持的操作系统之一："
+        echo -e "-${Red} Ubuntu ${Nc}"
+        echo -e "-${Red} Debian ${Nc}"
+        echo -e "-${Red} CentOS ${Nc}"
+        echo -e "-${Red} Fedora ${Nc}"
+        echo -e "-${Red} Kali ${Nc}"
+        echo -e "-${Red} AlmaLinux ${Nc}"
+        echo -e "-${Red} Rocky Linux ${Nc}"
+        echo -e "-${Red} Oracle Linux ${Nc}"
+        echo -e "-${Red} Alpine Linux ${Nc}"
+        exit 1
+    fi
+}
+
 # 检查是否为root用户
 check_root(){
     if [ "$(id -u)" != "0" ]; then
