@@ -41,6 +41,58 @@ check_release(){
     fi
 }
 
+check_pmc(){
+    check_release
+    if [[ "$release" == "debian" || "$release" == "ubuntu" || "$release" == "kali" || "$release" == "armbian" ]]; then
+        updates="apt update -y"
+        installs="apt install -y"
+        check_install="dpkg -s"
+        apps=("net-tools")
+    elif [[ "$release" == "alpine" ]]; then
+        updates="apk update -f"
+        installs="apk add -f"
+        check_install="apk info -e"
+        apps=("net-tools")
+    elif [[ "$release" == "almalinux" || "$release" == "rocky" || "$release" == "oracle" || "$release" == "centos" ]]; then
+        updates="yum update -y"
+        installs="yum install -y"
+        check_install="yum list installed"
+        apps=("net-tools")
+    elif [[ "$release" == "fedora" || "$release" == "amzn" ]]; then
+        updates="dnf update -y"
+        installs="dnf install -y"
+        check_install="dnf list installed"
+        apps=("net-tools")
+    elif [[ "$release" == "arch" || "$release" == "manjaro" || "$release" == "parch" ]]; then
+        updates="pacman -Syu"
+        installs="pacman -Syu --noconfirm"
+        check_install="pacman -Q"
+        apps=("net-tools")
+    elif [[ "$release" == "opensuse-tumbleweed" ]]; then
+        updates="zypper refresh"
+        installs="zypper -q install -y"
+        check_install="zypper search --installed-only"
+        apps=("net-tools")
+    fi
+}
+
+install_base(){
+    check_pmc
+    cmds=("netstat")
+
+    for g in "${!apps[@]}"; do
+        if ! $check_install "${apps[$g]}" &> /dev/null; then
+            CMDS+=(${cmds[g]})
+            DEPS+=("${apps[$g]}")
+        fi
+    done
+    
+    if [ ${#DEPS[@]} -gt 0 ]; then
+        $updates &> /dev/null
+        $installs "${DEPS[@]}" &> /dev/null
+    fi
+}
+
 # 检查是否为root用户
 check_root(){
     if [ "$(id -u)" != "0" ]; then
@@ -89,6 +141,7 @@ restart_ssh(){
 
 main(){
     check_root
+    install_base
     set_port
     set_passwd
     sed -i "0,/^#\?Port/s/^#\?Port.*/Port $sshport/g" /etc/ssh/sshd_config
