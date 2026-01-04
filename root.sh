@@ -44,52 +44,40 @@ check_release(){
 check_pmc(){
     check_release
     if [[ "$release" == "debian" || "$release" == "ubuntu" || "$release" == "kali" || "$release" == "armbian" ]]; then
-        updates="apt update -y"
-        installs="apt install -y"
-        check_install="dpkg -s"
         apps=("net-tools")
     elif [[ "$release" == "alpine" ]]; then
-        updates="apk update -f"
-        installs="apk add -f"
-        check_install="apk info -e"
         apps=("net-tools")
     elif [[ "$release" == "almalinux" || "$release" == "rocky" || "$release" == "oracle" || "$release" == "centos" ]]; then
-        updates="yum update -y"
-        installs="yum install -y"
-        check_install="yum list installed"
         apps=("net-tools")
     elif [[ "$release" == "fedora" || "$release" == "amzn" ]]; then
-        updates="dnf update -y"
-        installs="dnf install -y"
-        check_install="dnf list installed"
         apps=("net-tools")
     elif [[ "$release" == "arch" || "$release" == "manjaro" || "$release" == "parch" ]]; then
-        updates="pacman -Syu"
-        installs="pacman -Syu --noconfirm"
-        check_install="pacman -Q"
         apps=("net-tools")
     elif [[ "$release" == "opensuse-tumbleweed" ]]; then
-        updates="zypper refresh"
-        installs="zypper -q install -y"
-        check_install="zypper search --installed-only"
         apps=("net-tools")
     fi
+
+    updates=("apt -y update" "yum -y update --skip-broken" "apk update -f" "pacman -Sy" "dnf -y update" "zypper refresh")
+    installs=("apt -y install" "yum -y install" "apk add -f" "pacman -S --noconfirm" "dnf -y install" "zypper install -y")
 }
 
 install_base(){
     check_pmc
     cmds=("netstat")
+    echo
 
-    for g in "${!apps[@]}"; do
-        if ! $check_install "${apps[$g]}" &> /dev/null; then
-            CMDS+=(${cmds[g]})
-            DEPS+=("${apps[$g]}")
+    for i in "${!cmds[@]}"; do
+        if ! which "${cmds[i]}" &>/dev/null; then
+            DEPS+=("${apps[i]}")
         fi
     done
     
     if [ ${#DEPS[@]} -gt 0 ]; then
-        $updates &> /dev/null
-        $installs "${DEPS[@]}" &> /dev/null
+        echo -e "${Tip} 安装依赖列表：${Green}${DEPS[*]}${Nc} 请稍后..."
+        $updates
+        $installs "${DEPS[@]}" 
+    else
+        echo -e "${Info} 所有依赖已存在，不需要额外安装。"
     fi
 }
 
