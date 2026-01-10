@@ -120,10 +120,10 @@ set_passwd(){
         exit 1
     fi
 
-    if type -p chpasswd &> /dev/null; then
+    if which chpasswd &> /dev/null; then
         echo root:$passwd | chpasswd
     else
-        (echo "$passwd"; sleep 1; echo "$passwd") | passwd &> /dev/null
+        (echo "$passwd"; sleep 1; echo "$passwd") | passwd root &> /dev/null
     fi
 }
 
